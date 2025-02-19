@@ -2,8 +2,14 @@ import { nanoid } from "nanoid";
 import Url from "../models/Url.js";
 import { validateUrl } from "../utils/utils.js";
 import validator from "validator";
+import { Request, Response, NextFunction } from "express";
+import { logVisit } from "../services/logVisit.js";
 
-export const generateShortUrl = async (req, res, next) => {
+export const generateShortUrl = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { originalUrl } = req.body;
 
   const shortId = nanoid(6);
@@ -15,7 +21,7 @@ export const generateShortUrl = async (req, res, next) => {
     try {
       const newUrl = new Url({
         originalUrl,
-        shortId,
+        shortId
       });
 
       await newUrl.save();
@@ -27,12 +33,16 @@ export const generateShortUrl = async (req, res, next) => {
       res.status(500).json({ message: "Failed to shorten URL" });
     }
   } else {
-    return res
+    res
       .status(400)
       .json({ message: originalUrl ? "Invalid Url" : "Url is required" });
   }
 };
-export const getShortUrls = async (req, res, next) => {
+export const getShortUrls = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const urls = await Url.find().sort({ createdAt: -1 });
     if (urls && urls.length > 0) {
@@ -48,11 +58,42 @@ export const getShortUrls = async (req, res, next) => {
   }
 };
 
-export const getAnalytics = async (req, res, next) => {
+export const getAnalytics = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // TODO: Implement analytics logic here
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to add analytics" });
+  }
+};
+
+export const redirectToOriginalUrl = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { shortId } = req.params;
+    const url = await Url.findOne({ shortId });
+    if (url) {
+      // TODO: Update tracking Logic
+      // await Url.updateOne(
+      //   {
+      //     shortId: req.params.shortId,
+      //   },
+      //   { $inc: { clicks: 1 } }
+      // );
+
+      // Fire And Forget
+      logVisit(shortId, req);
+      return res.redirect(url.originalUrl);
+    } else res.status(404).json("Not found");
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Failed to redirect to original URL");
   }
 };

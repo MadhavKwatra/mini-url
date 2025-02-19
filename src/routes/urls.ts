@@ -2,8 +2,8 @@ import { Router } from "express";
 import {
   generateShortUrl,
   getAnalytics,
-  getShortUrls,
-} from "../controller/url.js";
+  getShortUrls
+} from "../controllers/url.js";
 
 const router = Router();
 

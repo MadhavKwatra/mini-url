@@ -1,2 +1,48 @@
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment Variables
 .env
-node_modules
+.env.*
+!.env.example # Keep .env.example if you have one
+
+# Build Output
+dist/
+build/
+out/
+.DS_Store # macOS
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+.jest/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS Generated Files
+Thumbs.db
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Dependency specific files
+/public/uploads/* # If you have an uploads folder that should not be tracked.
+/public/temp/* # If you have a temp folder that should not be tracked.
+
+# Optional (If you use Docker)
+docker-compose.yml # If you don't want to track your docker compose in your repo.
+Dockerfile # If you don't want to track your docker file in your repo.

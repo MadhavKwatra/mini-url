@@ -1,12 +1,12 @@
-import express, { json, urlencoded } from "express";
+import express, { Application, json, urlencoded } from "express";
 import dotenv from "dotenv";
 import connectDb from "./config/db.js";
 import urlsRouter from "./routes/urls.js";
 import indexRouter from "./routes/index.js";
-dotenv.config({ path: "./.env" });
+dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
 import cors from "cors";
 
-const app = express();
+const app: Application = express();
 
 // Body Parser
 app.use(urlencoded({ extended: true }));
@@ -21,5 +21,5 @@ const PORT = process.env.PORT || "4040";
 
 app.listen(PORT, async () => {
   await connectDb();
-  console.log(`Server is running at ${PORT}`);
+  console.log(`Server is running at ${PORT} in ${process.env.NODE_ENV} mode`);
 });
