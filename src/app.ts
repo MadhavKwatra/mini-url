@@ -9,6 +9,9 @@ import cors from "cors";
 
 const app: Application = express();
 
+// Some reverse proxy issue for deployed app
+app.set("trust proxy", true);
+
 // Body Parser
 app.use(urlencoded({ extended: true }));
 app.use(json());
