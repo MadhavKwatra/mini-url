@@ -5,12 +5,16 @@ const UrlSchema = new mongoose.Schema(
     shortId: {
       type: String,
       required: true,
-      unique: true,
+      unique: true
     },
     originalUrl: {
       type: String,
-      required: true,
+      required: true
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
   },
   { timestamps: true }
 );

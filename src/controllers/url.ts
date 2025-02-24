@@ -21,16 +21,16 @@ export const generateShortUrl = async (
     try {
       const newUrl = new Url({
         originalUrl,
-        shortId
+        shortId,
+        createdBy: req.user?.id
       });
-
       await newUrl.save();
       res
         .status(201)
         .json({ data: newUrl, message: "URL Shortened Successfully" });
     } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: "Failed to shorten URL" });
+      console.log(err, "Failed to shorten URL");
+      res.status(500).json({ message: "Failed to shorten URL", data: err });
     }
   } else {
     res
