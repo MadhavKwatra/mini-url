@@ -40,6 +40,17 @@ export const generateVerificationToken = (email: string): string => {
   };
   return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
 };
+export const generatePasswordResetToken = (user: User): string => {
+  if (!process.env.JWT_SECRET_KEY) {
+    throw new Error("JWT secret key is missing");
+  }
+
+  const payload = {
+    userId: user.id,
+    email: user.email
+  };
+  return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
+};
 
 export const verifyToken = (
   req: Request,
@@ -102,6 +113,30 @@ export const verifyVerificationToken = (token: string): JwtPayload => {
     return decoded;
   } catch (error) {
     console.log(error, "Failed to verify verification token");
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new Error("Verification failed: Token expired.");
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      throw new Error("Verification failed: Invalid token.");
+    } else {
+      console.error("JWT Verification Error:", error);
+      throw new Error("Verification failed: Token verification error.");
+    }
+  }
+};
+
+export const verifyPasswordResetToken = (token: string): JwtPayload => {
+  if (!process.env.JWT_SECRET_KEY) {
+    throw new Error("JWT secret key is missing");
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY) as JwtPayload;
+    if (typeof decoded === "string") {
+      throw new Error("Invalid token format");
+    }
+    return decoded;
+  } catch (error) {
+    console.log(error, "Failed to verify password reset token");
     if (error instanceof jwt.TokenExpiredError) {
       throw new Error("Verification failed: Token expired.");
     } else if (error instanceof jwt.JsonWebTokenError) {

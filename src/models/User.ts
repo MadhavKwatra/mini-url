@@ -5,6 +5,8 @@ export interface User extends Document {
   password: string;
   isVerified: boolean;
   verificationToken?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 const UserSchema = new mongoose.Schema<User>(
   {
@@ -22,7 +24,9 @@ const UserSchema = new mongoose.Schema<User>(
       required: true
     },
     isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String, default: null }
+    verificationToken: { type: String, default: null },
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null }
   },
   { timestamps: true }
 );
