@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
-
-const UserSchema = new mongoose.Schema(
+export interface User extends Document {
+  name: string;
+  email: string;
+  password: string;
+  isVerified: boolean;
+  verificationToken?: string;
+}
+const UserSchema = new mongoose.Schema<User>(
   {
     name: {
       type: String,
@@ -14,7 +20,9 @@ const UserSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true
-    }
+    },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, default: null }
   },
   { timestamps: true }
 );

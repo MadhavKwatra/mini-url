@@ -4,8 +4,11 @@ import User from "../models/User.js";
 import {
   comparePasswords,
   generateToken,
-  hashPassword
+  generateVerificationToken,
+  hashPassword,
+  verifyVerificationToken
 } from "../services/auth.js";
+import { sendVerificationEmail } from "../config/email.js";
 
 export const handleUserSignUp = async (
   req: Request,
@@ -34,8 +37,23 @@ export const handleUserSignUp = async (
       return;
     }
     const hashedPassword = await hashPassword(password);
-    const newUser = new User({ email, name, password: hashedPassword });
+    const token = generateVerificationToken(email);
+    const newUser = new User({
+      email,
+      name,
+      password: hashedPassword,
+      verificationToken: token
+    });
     await newUser.save();
+
+    const verificationEmailResponse = await sendVerificationEmail(email, token);
+    if (!verificationEmailResponse?.success) {
+      res.status(500).json({
+        success: false,
+        message: verificationEmailResponse.message
+      });
+      return;
+    }
     const totalUsers = await User.countDocuments();
     res.status(201).json({
       data: {
@@ -47,7 +65,7 @@ export const handleUserSignUp = async (
       message: "User Created Successfully"
     });
   } catch (err) {
-    console.log(err,"Failed to Sign Up");
+    console.log(err, "Failed to Sign Up");
     res.status(500).json({ message: "Failed to Sign Up" });
   }
 };
@@ -74,6 +92,14 @@ export const handleUserLogIn = async (
       res.status(400).json({ message: "This email does not have a account" });
       return;
     }
+    if (!userFound.isVerified) {
+      res
+        .status(400)
+        .json({
+          message: "This email is not verified. Please verify your email."
+        });
+      return;
+    }
 
     const isPasswordValid = await comparePasswords(
       password,
@@ -94,7 +120,47 @@ export const handleUserLogIn = async (
       message: "Logged In Successfully"
     });
   } catch (err) {
-    console.log(err,"Failed to log in");
+    console.log(err, "Failed to log in");
     res.status(500).json({ message: "Failed to log in" });
+  }
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      res.status(400).json({ message: "Verification token is required" });
+      return;
+    }
+
+    let decoded;
+    try {
+      decoded = verifyVerificationToken(token as string);
+    } catch (error: any) {
+      res.status(401).json({ success: false, message: error.message });
+      return;
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: decoded.email });
+    if (!user) {
+      res.status(400).json({ message: "User not found" });
+      return;
+    }
+
+    if (user.isVerified) {
+      res.status(400).json({ message: "User already verified" });
+      return;
+    }
+    // Mark user as verified
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Email verified successfully" });
+  } catch (error) {
+    console.log(error, "Error verifying email");
+    res.status(500).json({ message: "Error verifying email" });
   }
 };

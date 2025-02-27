@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import bcrypt, { hash } from "bcryptjs";
 
 interface User {
@@ -28,6 +28,17 @@ export const generateToken = (user: User): string => {
     email: user.email
   };
   return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
+};
+
+export const generateVerificationToken = (email: string): string => {
+  if (!process.env.JWT_SECRET_KEY) {
+    throw new Error("JWT secret key is missing");
+  }
+
+  const payload = {
+    email
+  };
+  return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1d" });
 };
 
 export const verifyToken = (
@@ -74,6 +85,30 @@ export const verifyToken = (
         error: "token_verification_failed"
       });
       // Generic 403 for other verification errors
+    }
+  }
+};
+
+export const verifyVerificationToken = (token: string): JwtPayload => {
+  if (!process.env.JWT_SECRET_KEY) {
+    throw new Error("JWT secret key is missing");
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY) as JwtPayload;
+    if (typeof decoded === "string") {
+      throw new Error("Invalid token format");
+    }
+    return decoded;
+  } catch (error) {
+    console.log(error, "Failed to verify verification token");
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new Error("Verification failed: Token expired.");
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      throw new Error("Verification failed: Invalid token.");
+    } else {
+      console.error("JWT Verification Error:", error);
+      throw new Error("Verification failed: Token verification error.");
     }
   }
 };

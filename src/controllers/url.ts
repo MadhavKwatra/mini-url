@@ -44,7 +44,13 @@ export const getShortUrls = async (
   next: NextFunction
 ) => {
   try {
-    const urls = await Url.find().sort({ createdAt: -1 });
+    if (!req.user?.id) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    const urls = await Url.find({ createdBy: req.user?.id }).sort({
+      createdAt: -1
+    });
     if (urls && urls.length > 0) {
       res
         .status(200)
