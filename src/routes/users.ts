@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/sign-up", handleUserSignUp);
 router.post("/log-in", handleUserLogIn);
-router.get("/verify-email", verifyEmail);
+router.post("/verify-email", verifyEmail);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 export default router;

@@ -130,7 +130,7 @@ export const handleUserLogIn = async (
 
 export const verifyEmail = async (req: Request, res: Response) => {
   try {
-    const { token } = req.query;
+    const { token } = req.body;
 
     if (!token) {
       res.status(400).json({ message: "Verification token is required" });
